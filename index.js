@@ -24,7 +24,6 @@ app.post('/api/explain', async (req, res) => {
     {
       role: "user",
       content: `You are an expert programmer. Explain the following code snippet in **plain, simple English**, like you are teaching a beginner. Just give a breif, clear explanation:\n\n${code}`,
-      // content: `You are an expert programmer explaining code. Explain the following code snippet in a clear, concise, and accessible way. Please format your explanation using markdown.\n\n${code}`,
     },
   ];
 
@@ -115,21 +114,8 @@ app.post('/api/suggest-theme', async (req, res) => {
   const messages = [
     {
       role: "user",
-      content: `You are an expert UI/UX designer. 
-A user has asked for a theme for the following topic: '${topic}'. 
-Generate a unique and creative color palette that reflects this topic, but ensure it remains fully accessible for color-blind and visually impaired users. 
-All colors must pass WCAG 2.1 AA contrast ratios for both normal and large text. 
-Do not always default to white background, blue primary, or gray secondary. 
-Instead, choose topic-appropriate colors that are still accessible. 
-Examples of topic-based palettes:
-Nature : greens, earthy tones
-Technology : blues, purples
-Food : warm reds, oranges
-Fashion : pastels, neutrals
-ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. 
-The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}.`
+      content: `You are an expert UI/UX designer. A user has asked for a theme for the following topic: '${topic}'. Generate a unique and creative color palette that reflects this topic, but ensure it remains fully accessible for color-blind and visually impaired users. All colors must pass WCAG 2.1 AA contrast ratios for both normal and large text. Do not always default to white background, blue primary, or gray secondary. Instead, choose topic-appropriate colors that are still accessible. Examples of topic-based palettes:Nature : greens and earthy tones, Technology : blues and purples,Food : warm reds and oranges, Fashion : pastels and neutrals. ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}.`
 
-      // content: `You are an expert UI/UX designer. A user has asked for a theme for the following topic: '${topic}'. Please provide a color palette and font suggestions that are accessible for color-blind and visually impaired users. Ensure all suggested colors pass WCAG 2.1 AA contrast ratios for both normal and large text. ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}. make sure the colors should be suggested for color-bliand and visually impared users.`,
     },
   ];
 
@@ -144,7 +130,6 @@ The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#
       }
     });
     const raw = response.data?.choices?.[0]?.message?.content || "";
-    // const raw = response.data.choices[0].message.content;
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("No JSON found in response");
