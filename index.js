@@ -8,6 +8,9 @@ app.use(cors());
 app.use(express.json());
 
 const port = process.env.PORT || 3001;
+const URL=process.env.OPENROUTER_URL || "https://openrouter.ai/api/v1/chat/completions";
+const MODEL=process.env.OPENROUTER_MODEL;
+const API_KEY=process.env.OPENROUTER_API_KEY;
 
 function cleanCodeResponse(text) {
   if (!text) return "";
@@ -20,23 +23,24 @@ app.post('/api/explain', async (req, res) => {
   const messages = [
     {
       role: "user",
-      content: `You are an expert programmer explaining code. Explain the following code snippet in a clear, concise, and accessible way. Please format your explanation using markdown.\n\n${code}`,
+      content: `You are an expert programmer. Explain the following code snippet in **plain, simple English**, like you are teaching a beginner. Just give a breif, clear explanation:\n\n${code}`,
+      // content: `You are an expert programmer explaining code. Explain the following code snippet in a clear, concise, and accessible way. Please format your explanation using markdown.\n\n${code}`,
     },
   ];
 
   try {
-    const response = await axios.post('https://router.requesty.ai/v1/chat/completions', {
-      model: "vertex/google/gemini-2.5-pro",
+    const response = await axios.post(URL, {
+      model: MODEL,
       messages,
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.REQUESTY_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
       }
     });
     console.log("res:",response.data)
     console.log("LLM output:", response.data.choices[0].message.content);
-    const explanation = response.data.choices[0].message.content;
+    const explanation = response.data?.choices?.[0]?.message?.content || "";
 
     res.json({ explanation });
   } catch (error) {
@@ -56,16 +60,17 @@ app.post('/api/refactor', async (req, res) => {
   ];
 
   try {
-    const response = await axios.post('https://router.requesty.ai/v1/chat/completions', {
-      model: "vertex/google/gemini-2.5-pro",
+    const response = await axios.post(URL, {
+      model: MODEL,
       messages,
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.REQUESTY_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
       }
     });
-    const refactoredCode = cleanCodeResponse(response.data.choices[0].message.content);
+    const output = response.data?.choices?.[0]?.message?.content || "";
+    const refactoredCode = cleanCodeResponse(output);
 
     res.json({ refactoredCode });
   } catch (error) {
@@ -80,21 +85,22 @@ app.post('/api/generate', async (req, res) => {
   const messages = [
     {
       role: "user",
-      content: `You are an expert programmer. A user has given the following voice command: '${command}'. Generate the code for this command. Only return the generated code.`,
+      content: `You are an expert programmer. A user has given the following command: '${command}'. Generate the code for this command. Only return the generated code.`,
     },
   ];
 
   try {
-    const response = await axios.post('https://router.requesty.ai/v1/chat/completions', {
-      model: "vertex/google/gemini-2.5-pro",
+    const response = await axios.post(URL, {
+      model: MODEL,
       messages,
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.REQUESTY_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
       }
     });
-    const generatedCode = cleanCodeResponse(response.data.choices[0].message.content);
+    const output = response.data?.choices?.[0]?.message?.content || "";
+    const generatedCode = cleanCodeResponse(output);
 
     res.json({ generatedCode });
   } catch (error) {
@@ -109,22 +115,36 @@ app.post('/api/suggest-theme', async (req, res) => {
   const messages = [
     {
       role: "user",
-      content: `You are an expert UI/UX designer. A user has asked for a theme for the following topic: '${topic}'. Please provide a color palette and font suggestions that are accessible for color-blind and visually impaired users. ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}. make sure the colors should be suggested for color-bliand and visually impared users.`,
+      content: `You are an expert UI/UX designer. 
+A user has asked for a theme for the following topic: '${topic}'. 
+Generate a unique and creative color palette that reflects this topic, but ensure it remains fully accessible for color-blind and visually impaired users. 
+All colors must pass WCAG 2.1 AA contrast ratios for both normal and large text. 
+Do not always default to white background, blue primary, or gray secondary. 
+Instead, choose topic-appropriate colors that are still accessible. 
+Examples of topic-based palettes:
+Nature : greens, earthy tones
+Technology : blues, purples
+Food : warm reds, oranges
+Fashion : pastels, neutrals
+ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. 
+The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}.`
+
+      // content: `You are an expert UI/UX designer. A user has asked for a theme for the following topic: '${topic}'. Please provide a color palette and font suggestions that are accessible for color-blind and visually impaired users. Ensure all suggested colors pass WCAG 2.1 AA contrast ratios for both normal and large text. ONLY return a valid JSON object, no extra explanation, no markdown, no text outside JSON. The structure must be exactly: { "palette": { "primary": "#...", "secondary": "#...", "accent": "#...", "background": "#...", "text": "#..." }, "fonts": { "heading": "...", "body": "..." }}. make sure the colors should be suggested for color-bliand and visually impared users.`,
     },
   ];
 
   try {
-    const response = await axios.post('https://router.requesty.ai/v1/chat/completions', {
-      model: "vertex/google/gemini-2.5-pro",
+    const response = await axios.post(URL, {
+      model: MODEL,
       messages,
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.REQUESTY_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
       }
     });
-    console.log("res:",response.data.choices[0].message.content)
-    const raw = response.data.choices[0].message.content;
+    const raw = response.data?.choices?.[0]?.message?.content || "";
+    // const raw = response.data.choices[0].message.content;
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("No JSON found in response");
